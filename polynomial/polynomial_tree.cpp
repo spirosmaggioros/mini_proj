@@ -74,6 +74,24 @@ node *derivative(node *root){
 	return p;
 }
 
+node *double_derivative(node *root){
+	node *p = derivative(root);
+	if(!root){return root;}
+	node *ans = nullptr;
+	queue<node*> q;
+	q.push(p);
+	while(!q.empty()){
+		node *current = q.front();
+		int coeff = current -> coeff * current -> expon;
+		int exp = current -> expon - 1;
+		ans = insert(ans , coeff , exp);
+		q.pop();
+		if(current -> right){q.push(current -> right);}
+		if(current -> left){q.push(current -> left);}
+	}
+	return ans;
+}
+
 string find_min_max(node *root ,const int &a ,const int &b){
 	int mini = min(a, b);
 	int maxi = max(a, b);
@@ -110,6 +128,64 @@ ostream & operator << (ostream &out , node *root){
 }
 
 
+node* add__(node *root1 , node *root2){
+	if((!root1 && !root2) || (root1 && !root2)){
+		return root1;
+	}
+	else if(!root1 && root2){return root2;}
+	node *root = nullptr;
+	stack<node*> s;
+	s.push(root1);
+	while(!s.empty()){
+		node *current = s.top();
+		root = insert(root , current -> coeff , current -> expon);
+		s.pop();
+		if(current -> right){s.push(current -> right);}
+		if(current -> left){s.push(current -> left);}
+	}
+	stack<node*> p;
+	s.push(root2);
+	while(!s.empty()){
+		node *current = s.top();
+		root = insert(root , current -> coeff , current -> expon);
+		s.pop();
+		if(current -> right){s.push(current -> right);}
+		if(current -> left){s.push(current -> left);}
+	}
+	return root;
+}
+
+node *multipy__(node *root1 , node *root2){
+	if(!root1 || !root2){return nullptr;}
+	node *root = nullptr;
+	vector<pair<int , int> > list_node;
+	stack<node*> s;
+	s.push(root1);
+	while(!s.empty()){
+		node *current = s.top();
+		list_node.push_back(make_pair(current -> coeff , current -> expon));
+		s.pop();
+		if(current -> left){s.push(current -> left);}
+		if(current -> right){s.push(current -> right);}
+	}
+	vector<pair<int , int > > ans;
+	for(int i = 0; i<list_node.size(); i++){
+		stack<node*> p;
+		p.push(root2);
+		while(!p.empty()){
+			node *current = p.top();
+			ans.push_back(make_pair(list_node[i].first * current -> coeff , list_node[i].second + current -> expon));
+			p.pop();
+			if(current -> left){p.push(current -> left);}
+			if(current -> right){p.push(current -> right);}
+		}
+	}
+	for(const auto & x : ans){
+		root = insert(root , x.first , x.second);
+	}
+	return root;
+}
+
 int main(){
  	node *p = nullptr;
  	int a; cin >> a;//power
@@ -117,8 +193,14 @@ int main(){
  		int b , c; cin >> b >> c;
  		p = insert(p , b , c);
  	}
- 	cout << "Normal , : "  << p << '\n';
- 	node *q = derivative(p);
- 	cout << "Derivative , : " << q << '\n';
- 	cout << find_min_max(q, -10, 10);
+ 	node *q = nullptr;
+ 	int b; cin >> b;
+ 	for(int i = 0; i<b; i++){
+ 		int c , d; cin >> c >> d;
+ 		q = insert(q , c , d);
+ 	}
+ 	cout << multipy__(p, q) << '\n';
+ 	cout << add__(p , q) << '\n';
+ 	cout << find_min_max(p, -10, 10) << '\n';
+ 	cout << derivative(p) << '\n';
 }
